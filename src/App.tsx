@@ -338,7 +338,7 @@ function App() {
   };
 
   return (
-    <div style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '1400px', margin: '0 auto' }}>
+    <div className="game-container" style={{ padding: '20px', fontFamily: 'Arial, sans-serif', maxWidth: '1400px', margin: '0 auto', position: 'relative', zIndex: 1 }}>
       {/* Opening Animation */}
       {showOpeningAnimation && (
         <div
@@ -453,25 +453,28 @@ function App() {
       )}
 
       {/* Header */}
-      <div style={{ marginBottom: '20px', paddingBottom: '20px', borderBottom: '2px solid #dee2e6' }}>
-        <h1 style={{ margin: 0 }}>Pokémon Azul - Full Game</h1>
-        <div style={{ marginTop: '10px', fontSize: '14px', color: '#495057' }}>
-          <strong>Phase:</strong> {gameState.phase} | <strong>Round:</strong> {gameState.round} |
-          <strong> Current Player:</strong> Player {gameState.currentPlayerIndex + 1}
+      <div className="game-header">
+        <h1>Pokémon Azul</h1>
+        <div className="game-status-bar">
+          <div className="status-segment">
+            <span className="status-label">Phase:</span>
+            <span className="status-value">{gameState.phase}</span>
+          </div>
+          <div className="status-segment">
+            <span className="status-label">Round:</span>
+            <span className="status-value">{gameState.round}</span>
+          </div>
+          <div className="status-segment">
+            <div className="current-player-badge">
+              ⭐ Player {gameState.currentPlayerIndex + 1}'s Turn
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Message */}
       {message && (
-        <div
-          style={{
-            padding: '12px',
-            backgroundColor: '#e7f5ff',
-            border: '1px solid #339af0',
-            borderRadius: '4px',
-            marginBottom: '20px',
-          }}
-        >
+        <div className="message-box">
           {message}
         </div>
       )}
@@ -769,6 +772,7 @@ function App() {
       <div style={{ display: 'flex', gap: '30px', alignItems: 'flex-start' }}>
         {/* Left: Factories & Center - Sticky */}
         <div
+          className="sticky-sidebar"
           style={{
             flex: '0 0 350px',
             position: 'sticky',
@@ -778,7 +782,7 @@ function App() {
             overflowY: 'auto',
           }}
         >
-          <h3>Factories</h3>
+          <h3 className="section-header">Factories</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', marginBottom: '20px' }}>
             {gameState.factories.map((factory) => (
               <FactoryDisplay
@@ -792,7 +796,7 @@ function App() {
             ))}
           </div>
 
-          <h3>Center</h3>
+          <h3 className="section-header">Center</h3>
           <CenterDisplay
             tiles={gameState.center.tiles}
             hasMarker={gameState.center.hasStartingPlayerMarker}
@@ -815,14 +819,9 @@ function App() {
                 key={player.playerId}
                 ref={(el) => (playerRefs.current[idx] = el)}
                 id={`player-${idx}-board`}
+                className={`player-board ${shouldHighlight ? 'current-player' : 'inactive'}`}
                 style={{
-                  marginBottom: '30px',
-                  padding: '15px',
-                  border: shouldHighlight ? '3px solid #339af0' : '1px solid #dee2e6',
-                  borderRadius: '8px',
-                  backgroundColor: shouldHighlight ? '#f8f9fa' : 'white',
                   scrollMarginTop: '80px',
-                  position: 'relative',
                 }}
               >
               {/* Losing Animation Overlay */}
@@ -883,11 +882,12 @@ function App() {
                   </div>
                 ) : null;
               })()}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                <h3 style={{ margin: 0 }}>
-                  Player {idx + 1} {player.isStartingPlayer && '⭐'}
-                </h3>
-                <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#339af0' }}>
+              <div className="player-board-header">
+                <div className="player-name">
+                  <span>Player {idx + 1}</span>
+                  {player.isStartingPlayer && <span style={{ fontSize: '28px' }}>⭐</span>}
+                </div>
+                <div className="player-score">
                   Score: {player.score}
                 </div>
               </div>
@@ -896,7 +896,7 @@ function App() {
               <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
                 {/* Pattern Lines - Always visible */}
                 <div style={{ flex: '0 0 auto', minWidth: '280px', maxWidth: '320px' }}>
-                  <h4 style={{ margin: '0 0 6px 0', fontSize: '14px' }}>Pattern Lines:</h4>
+                  <h4 className="section-header" style={{ margin: '0 0 6px 0' }}>Pattern Lines</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {player.patternLines.map((line, lineIdx) => {
                     const isWallTilingPhase = gameState.phase === 'wall-tiling';
@@ -924,44 +924,41 @@ function App() {
                       (isWallTilingPhase && isCompleted && idx === gameState.currentPlayerIndex));
                     const isSelected = walltiling_selectedLine?.playerIdx === idx && walltiling_selectedLine?.lineIdx === lineIdx;
 
+                    // Determine pattern line CSS class
+                    let patternLineClass = 'pattern-line';
+                    if (isSelected) {
+                      patternLineClass += ' selected';
+                    } else if (isWallTilingPhase && isCompleted && idx === gameState.currentPlayerIndex) {
+                      patternLineClass += ' completed';
+                    } else if (idx === gameState.currentPlayerIndex && gameState.takenTiles && canAcceptTiles) {
+                      patternLineClass += ' can-accept';
+                    } else if (idx === gameState.currentPlayerIndex && gameState.takenTiles && !canAcceptTiles) {
+                      patternLineClass += ' invalid';
+                    }
+                    if (isClickable) {
+                      patternLineClass += ' clickable';
+                    }
+
                     return (
                       <div
                         key={lineIdx}
                         onClick={() => isClickable && handlePatternLineClick(idx, lineIdx)}
                         title={tooltipMessage || undefined}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '6px',
-                          padding: '4px 8px',
-                          backgroundColor: isSelected ? '#e7f5ff' : '#f8f9fa',
-                          borderRadius: '3px',
-                          cursor: isClickable ? 'pointer' : 'default',
-                          border: isSelected
-                            ? '2px solid #339af0'
-                            : (isWallTilingPhase && isCompleted && idx === gameState.currentPlayerIndex)
-                            ? '2px solid #40c057'
-                            : (idx === gameState.currentPlayerIndex && gameState.takenTiles && canAcceptTiles)
-                            ? '2px dashed #339af0'
-                            : (idx === gameState.currentPlayerIndex && gameState.takenTiles && !canAcceptTiles)
-                            ? '2px solid #fa5252'
-                            : '1px solid #dee2e6',
-                          opacity: (idx === gameState.currentPlayerIndex && gameState.takenTiles && !canAcceptTiles) ? 0.3 : isClickable ? 1 : 0.5,
-                          minHeight: '40px',
-                        }}
+                        className={patternLineClass}
                       >
-                      <div style={{ width: '20px', fontWeight: 'bold', fontSize: '12px' }}>L{lineIdx}</div>
+                      <div className="pattern-line-label">L{lineIdx}</div>
                       <div style={{ display: 'flex', gap: '3px' }}>
                         {Array.from({ length: line.capacity }).map((_, i) => {
                           const hasTile = i < line.tiles.length && line.color;
                           return (
                             <div
                               key={i}
+                              className={hasTile ? 'tile' : ''}
                               style={{
                                 width: '34px',
                                 height: '34px',
                                 backgroundColor: hasTile ? 'transparent' : '#e9ecef',
-                                border: '1px solid #adb5bd',
+                                border: hasTile ? undefined : '1px solid #adb5bd',
                                 borderRadius: '3px',
                                 display: 'flex',
                                 alignItems: 'center',
@@ -1008,8 +1005,8 @@ function App() {
                 </div>
 
                   {/* Floor Line */}
-                  <div style={{ marginTop: '8px' }}>
-                    <h4 style={{ margin: '0 0 4px 0', fontSize: '13px' }}>Floor: ({player.floorLine.tiles.length})</h4>
+                  <div className="floor-line" style={{ marginTop: '8px' }}>
+                    <h4 className="floor-line-title" style={{ margin: '0 0 4px 0' }}>Floor: ({player.floorLine.tiles.length})</h4>
                     <div style={{ display: 'flex', gap: '3px', flexWrap: 'wrap', minHeight: '28px' }}>
                       {player.floorLine.hasStartingPlayerMarker && (
                         <div
@@ -1027,22 +1024,15 @@ function App() {
                       {player.floorLine.tiles.map((tile, i) => (
                         <div
                           key={i}
-                          style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '3px',
-                            border: '1px solid #adb5bd',
-                            overflow: 'hidden',
-                            position: 'relative',
-                          }}
+                          className="tile"
                           title={tile.color}
                         >
                           <img
                             src={getTileImagePath(tile.color, tile.id)}
                             alt={tile.color}
                             style={{
-                              width: '100%',
-                              height: '100%',
+                              width: '34px',
+                              height: '34px',
                               objectFit: 'cover',
                               display: 'block',
                             }}
@@ -1055,8 +1045,8 @@ function App() {
 
                 {/* Wall */}
                 <div style={{ flex: '1' }}>
-                  <h4 style={{ margin: '0 0 6px 0', fontSize: '14px' }}>Wall:</h4>
-                <div style={{ display: 'inline-block' }}>
+                  <h4 className="section-header" style={{ margin: '0 0 6px 0' }}>Wall</h4>
+                <div className="wall-grid">
                   {player.wall.grid.map((row, rowIdx) => (
                     <div key={rowIdx} style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
                       {row.map((tile, colIdx) => {
@@ -1102,6 +1092,19 @@ function App() {
                           }
                         }
 
+                        // Determine wall cell CSS class
+                        let wallCellClass = 'wall-cell';
+                        if (tile) {
+                          wallCellClass += ' filled';
+                          if (tile.injured) {
+                            wallCellClass += ' injured';
+                          }
+                        } else if (isValidPlacement) {
+                          wallCellClass += ' valid-placement';
+                        } else if (isInWallTilingMode && !isValidPlacement) {
+                          wallCellClass += ' invalid';
+                        }
+
                         return (
                           <div
                             key={colIdx}
@@ -1114,39 +1117,7 @@ function App() {
                                 setMessage(`Cannot place tile here: ${invalidReason}`);
                               }
                             }}
-                            style={{
-                              width: '65px',
-                              height: '65px',
-                              backgroundColor: tile ? 'transparent' : '#f8f9fa',
-                              border: isValidPlacement
-                                ? '4px solid #40c057'
-                                : tile?.injured
-                                ? '4px solid red'
-                                : isInWallTilingMode && !tile
-                                ? '2px solid #ced4da'
-                                : '2px solid #dee2e6',
-                              borderRadius: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              fontSize: tile ? '12px' : '16px',
-                              color: tile ? 'white' : '#adb5bd',
-                              fontWeight: 'bold',
-                              cursor: tile?.injured || isValidPlacement
-                                ? 'pointer'
-                                : isInWallTilingMode && !tile
-                                ? 'not-allowed'
-                                : 'default',
-                              position: 'relative',
-                              boxShadow: tile
-                                ? '0 2px 4px rgba(0,0,0,0.2)'
-                                : isValidPlacement
-                                ? '0 0 8px rgba(64,192,87,0.5)'
-                                : 'none',
-                              animation: isValidPlacement ? 'pulse 1.5s infinite' : 'none',
-                              opacity: isInWallTilingMode && !tile && !isValidPlacement ? 0.3 : 1,
-                              overflow: 'hidden',
-                            }}
+                            className={wallCellClass}
                             title={invalidReason || undefined}
                           >
                             {tile ? (
@@ -1165,22 +1136,7 @@ function App() {
                                   }}
                                 />
                                 {/* Type letter badge */}
-                                <div
-                                  style={{
-                                    position: 'absolute',
-                                    bottom: '2px',
-                                    right: '2px',
-                                    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-                                    color: '#333',
-                                    fontSize: '11px',
-                                    fontWeight: 'bold',
-                                    padding: '1px 4px',
-                                    borderRadius: '3px',
-                                    lineHeight: '1',
-                                    pointerEvents: 'none',
-                                    zIndex: 2,
-                                  }}
-                                >
+                                <div className={`type-badge ${tile.color}`}>
                                   {TYPE_LETTER[tile.color]}
                                 </div>
                                 {tile.injured && (
@@ -1206,36 +1162,18 @@ function App() {
             );
           })}
 
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginTop: '20px' }}>
             {gameState.phase === 'wall-tiling' && (
               <button
                 onClick={handleFinishRound}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#40c057',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                }}
+                className="game-button primary"
               >
                 Finish Round
               </button>
             )}
             <button
               onClick={handleNewGame}
-              style={{
-                padding: '12px 24px',
-                backgroundColor: '#ff6b6b',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '16px',
-                fontWeight: 'bold',
-              }}
+              className="game-button danger"
             >
               New Game
             </button>
@@ -1251,16 +1189,7 @@ function App() {
                   setGameState(newState);
                   setShowWinnerModal(true);
                 }}
-                style={{
-                  padding: '12px 24px',
-                  backgroundColor: '#845ef7',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '16px',
-                  fontWeight: 'bold',
-                }}
+                className="game-button secondary"
               >
                 [DEV] Show End Modal
               </button>
@@ -1291,35 +1220,19 @@ function FactoryDisplay({
   return (
     <div
       onClick={disabled ? undefined : onClick}
-      style={{
-        padding: '12px',
-        border: selected ? '3px solid #339af0' : '2px solid #dee2e6',
-        borderRadius: '8px',
-        backgroundColor: disabled ? '#f8f9fa' : 'white',
-        opacity: disabled ? 0.5 : 1,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-      }}
+      className={`factory-card ${selected ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
     >
-      <div
-        style={{
-          fontWeight: 'bold',
-          marginBottom: '8px',
-          fontSize: '14px',
-        }}
-      >
+      <div className="factory-title">
         Factory {factory.id + 1}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', minHeight: '40px' }}>
         {factory.tiles.map((tile, idx) => (
           <div
             key={idx}
+            className="tile"
             style={{
               width: '51px',
               height: '51px',
-              borderRadius: '4px',
-              border: '1px solid #adb5bd',
-              overflow: 'hidden',
-              position: 'relative',
             }}
             title={tile.color}
           >
@@ -1354,16 +1267,10 @@ function FactoryDisplay({
                     e.stopPropagation();
                     onColorClick(color, 'factory', factory.id);
                   }}
+                  className="color-select-button"
                   style={{
-                    padding: '4px 8px',
                     backgroundColor: getColorHex(color),
                     color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                   }}
                   title={`${color} (${count} tiles)`}
                 >
@@ -1399,35 +1306,19 @@ function CenterDisplay({
   return (
     <div
       onClick={disabled ? undefined : onClick}
-      style={{
-        padding: '12px',
-        border: selected ? '3px solid #339af0' : '2px solid #dee2e6',
-        borderRadius: '8px',
-        backgroundColor: disabled ? '#f8f9fa' : 'white',
-        opacity: disabled ? 0.5 : 1,
-        minHeight: '80px',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-      }}
+      className={`center-card ${selected ? 'selected' : ''} ${disabled ? 'disabled' : ''}`}
     >
-      <div
-        style={{
-          fontWeight: 'bold',
-          marginBottom: '8px',
-        }}
-      >
+      <div className="center-title">
         Center {hasMarker && '⭐'}
       </div>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
         {tiles.map((tile, idx) => (
           <div
             key={idx}
+            className="tile"
             style={{
-              width: '39px',
-              height: '39px',
-              borderRadius: '4px',
-              border: '1px solid #adb5bd',
-              overflow: 'hidden',
-              position: 'relative',
+              width: '51px',
+              height: '51px',
             }}
             title={tile.color}
           >
@@ -1462,16 +1353,10 @@ function CenterDisplay({
                     e.stopPropagation();
                     onColorClick(color, 'center', null);
                   }}
+                  className="color-select-button"
                   style={{
-                    padding: '4px 8px',
                     backgroundColor: getColorHex(color),
                     color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    fontSize: '11px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
                   }}
                   title={`${color} (${count} tiles)`}
                 >

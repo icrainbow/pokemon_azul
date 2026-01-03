@@ -1,4 +1,4 @@
-import { PokemonTile, Position, Wall, PlacementResult } from './types';
+import type { PokemonTile, Position, Wall, PlacementResult } from './types';
 import { restricts } from './typeEffectiveness';
 
 // Create empty wall

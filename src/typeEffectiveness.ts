@@ -1,4 +1,4 @@
-import { PokemonType } from './types';
+import type { PokemonType } from './types';
 
 // Type effectiveness matrix: returns true if attackerType is super effective against defenderType
 export function isSuperEffective(
