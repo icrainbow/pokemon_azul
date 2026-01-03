@@ -1096,7 +1096,9 @@ function App() {
                         let wallCellClass = 'wall-cell';
                         if (tile) {
                           wallCellClass += ' filled';
-                          if (tile.injured) {
+                          if (tile.koStatus) {
+                            wallCellClass += ' ko';
+                          } else if (tile.injured) {
                             wallCellClass += ' injured';
                           }
                         } else if (isValidPlacement) {

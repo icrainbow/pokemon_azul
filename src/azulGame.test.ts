@@ -105,6 +105,7 @@ describe('Azul Game Logic', () => {
         color: 'fire',
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
 
       // Try to place fire tiles in pattern line 1 (same row)
@@ -125,6 +126,7 @@ describe('Azul Game Logic', () => {
         color: 'water',
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
 
       // Place fire tiles in pattern line 1 (same row, but different color)
@@ -152,6 +154,7 @@ describe('Azul Game Logic', () => {
         color: 'fire',
         penaltyCount: 1,
         injured: true,
+      koStatus: false,
       };
 
       const newState = healTile(state, 0, 0, 0);
@@ -166,6 +169,7 @@ describe('Azul Game Logic', () => {
         color: 'fire',
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
 
       expect(() => healTile(state, 0, 0, 0)).toThrow();

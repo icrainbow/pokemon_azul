@@ -26,6 +26,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
 
       const result = placeTile(wall, tile, { row: 2, col: 2 });
@@ -46,6 +47,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result1 = placeTile(wall, tile1, { row: 2, col: 2 });
       wall = result1.wall;
@@ -57,6 +59,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result2 = placeTile(wall, tile2, { row: 2, col: 3 });
 
@@ -74,6 +77,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result1 = placeTile(wall, tile1, { row: 2, col: 2 });
       wall = result1.wall;
@@ -85,6 +89,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result2 = placeTile(wall, tile2, { row: 3, col: 2 });
 
@@ -101,6 +106,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, tile1, { row: 2, col: 1 }).wall;
 
@@ -111,6 +117,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, tile2, { row: 1, col: 2 }).wall;
 
@@ -121,6 +128,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result = placeTile(wall, tile3, { row: 2, col: 2 });
 
@@ -138,6 +146,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, fireTile, { row: 2, col: 2 }).wall;
 
@@ -148,6 +157,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result = placeTile(wall, grassTile, { row: 2, col: 3 });
 
@@ -167,6 +177,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, fireTile1, { row: 2, col: 2 }).wall;
 
@@ -176,6 +187,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, fireTile2, { row: 3, col: 3 }).wall;
 
@@ -186,6 +198,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result = placeTile(wall, grassTile, { row: 3, col: 2 });
 
@@ -205,6 +218,7 @@ describe('Core Logic', () => {
         score: 5,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, fireTile, { row: 2, col: 2 }).wall;
 
@@ -215,6 +229,7 @@ describe('Core Logic', () => {
         score: 3,
         penaltyCount: 1,
         injured: true,
+      koStatus: false,
       };
       const result = placeTile(wall, grassTile, { row: 2, col: 3 });
 
@@ -234,6 +249,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, waterTile, { row: 2, col: 2 }).wall;
 
@@ -244,6 +260,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result = placeTile(wall, grassTile, { row: 2, col: 3 });
 
@@ -261,6 +278,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, tile1, { row: 2, col: 2 }).wall;
 
@@ -270,6 +288,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
 
       expect(() => placeTile(wall, tile2, { row: 2, col: 2 })).toThrow(
@@ -285,6 +304,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
 
       expect(() => placeTile(wall, tile, { row: -1, col: 2 })).toThrow(
@@ -305,6 +325,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, fireTile, { row: 2, col: 2 }).wall;
 
@@ -315,6 +336,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       const result = placeTile(wall, grassTile, { row: 1, col: 2 });
 
@@ -334,6 +356,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, fireTile, { row: 2, col: 2 }).wall;
 
@@ -344,6 +367,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 1,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, grassTile, { row: 2, col: 3 }).wall;
 
@@ -367,6 +391,7 @@ describe('Core Logic', () => {
         score: 10,
         penaltyCount: 1,
         injured: true,
+      koStatus: false,
       };
       wall = placeTile(wall, tile, { row: 2, col: 2 }).wall;
 
@@ -386,6 +411,7 @@ describe('Core Logic', () => {
         score: 5,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, tile, { row: 2, col: 2 }).wall;
 
@@ -413,6 +439,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, tile, { row: 2, col: 3 }).wall;
 
@@ -443,6 +470,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, fireTile, { row: 2, col: 2 }).wall;
 
@@ -453,6 +481,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, grassTile, { row: 1, col: 2 }).wall;
       expect(wall.tiles.get('grass-1')?.injured).toBe(true);
@@ -475,6 +504,7 @@ describe('Core Logic', () => {
         score: 0,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, tile1, { row: 2, col: 2 }).wall;
       expect(wall.tiles.get('tile-1')?.score).toBe(1);
@@ -485,6 +515,7 @@ describe('Core Logic', () => {
         score: 5,
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
       wall = placeTile(wall, tile2, { row: 2, col: 3 }).wall;
       expect(wall.tiles.get('tile-2')?.score).toBe(7); // 5 + 2

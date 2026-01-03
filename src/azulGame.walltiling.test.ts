@@ -162,8 +162,8 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
     const player = state.players[0];
 
     // Setup: Wall has some tiles but row 2 has NO Electric
-    player.wall.grid[0][0] = { color: 'water', penaltyCount: 0, injured: false };
-    player.wall.grid[1][1] = { color: 'fire', penaltyCount: 0, injured: false };
+    player.wall.grid[0][0] = { color: 'water', penaltyCount: 0, injured: false, koStatus: false };
+    player.wall.grid[1][1] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
     // Row 2 is empty
 
     // Fill pattern line 2 (L3) with Electric
@@ -189,7 +189,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
     const player = state.players[0];
 
     // Setup: Row 2 already has Electric at position [2,0]
-    player.wall.grid[2][0] = { color: 'electric', penaltyCount: 0, injured: false };
+    player.wall.grid[2][0] = { color: 'electric', penaltyCount: 0, injured: false, koStatus: false };
 
     // Fill pattern line 2 (L3) with Electric
     player.patternLines[2].tiles = [
@@ -210,7 +210,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
     const player = state.players[0];
 
     // Setup: Row 2 has Water (different type) at position [2,0]
-    player.wall.grid[2][0] = { color: 'water', penaltyCount: 0, injured: false };
+    player.wall.grid[2][0] = { color: 'water', penaltyCount: 0, injured: false, koStatus: false };
 
     // Fill pattern line 2 (L3) with Electric
     player.patternLines[2].tiles = [
@@ -336,7 +336,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
       const player = state.players[0];
 
       // Place fire at [2,2]
-      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false };
+      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
       // Try to place fire at [2,3] (right of [2,2]) - should fail
       expect(canPlaceOnWall(player.wall, 2, 3, 'fire')).toBe(false);
@@ -347,7 +347,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
       const player = state.players[0];
 
       // Place fire at [2,2]
-      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false };
+      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
       // Try to place fire at [2,1] (left of [2,2]) - should fail
       expect(canPlaceOnWall(player.wall, 2, 1, 'fire')).toBe(false);
@@ -358,7 +358,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
       const player = state.players[0];
 
       // Place fire at [2,2]
-      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false };
+      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
       // Try to place fire at [1,2] (above [2,2]) - should fail
       expect(canPlaceOnWall(player.wall, 1, 2, 'fire')).toBe(false);
@@ -369,7 +369,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
       const player = state.players[0];
 
       // Place fire at [2,2]
-      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false };
+      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
       // Try to place fire at [3,2] (below [2,2]) - should fail
       expect(canPlaceOnWall(player.wall, 3, 2, 'fire')).toBe(false);
@@ -380,7 +380,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
       const player = state.players[0];
 
       // Place fire at [2,2]
-      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false };
+      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
       // Try to place fire at [2,4] (2 positions away in SAME row) - should FAIL due to row uniqueness
       expect(canPlaceOnWall(player.wall, 2, 4, 'fire')).toBe(false);
@@ -397,7 +397,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
       const player = state.players[0];
 
       // Place fire at [2,2]
-      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false };
+      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
       // Try to place water at [2,3] (right of fire) - should succeed
       expect(canPlaceOnWall(player.wall, 2, 3, 'water')).toBe(true);
@@ -411,7 +411,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
       const player = state.players[0];
 
       // Place fire at [2,2]
-      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false };
+      player.wall.grid[2][2] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
       // Try to place water at same position - should fail
       expect(canPlaceOnWall(player.wall, 2, 2, 'water')).toBe(false);
@@ -423,7 +423,7 @@ describe('Azul Wall-Tiling Manual Interaction', () => {
     const player = state.players[0];
 
     // Place fire at [0,1] (row 0)
-    player.wall.grid[0][1] = { color: 'fire', penaltyCount: 0, injured: false };
+    player.wall.grid[0][1] = { color: 'fire', penaltyCount: 0, injured: false, koStatus: false };
 
     // Fill pattern line 0 with fire (must match wall row 0)
     player.patternLines[0].tiles = [{ id: 'tile-1', color: 'fire' }];

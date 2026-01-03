@@ -87,6 +87,7 @@ describe('Row Uniqueness Rule', () => {
       color: 'psychic',
       penaltyCount: 0,
       injured: false,
+      koStatus: false,
     };
 
     // Try to add psychic tiles to pattern line 3 (maps to row 3)
@@ -129,6 +130,7 @@ describe('Auto-Floor for Invalid Tiles', () => {
       color: 'electric',
       penaltyCount: 0,
       injured: false,
+      koStatus: false,
     };
 
     // Pattern line 4: also put electric in wall row 4
@@ -136,6 +138,7 @@ describe('Auto-Floor for Invalid Tiles', () => {
       color: 'electric',
       penaltyCount: 0,
       injured: false,
+      koStatus: false,
     };
 
     // Now try to take electric tiles

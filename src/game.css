@@ -511,6 +511,49 @@ body {
   75% { transform: rotate(3deg); }
 }
 
+/* KO (Knocked Out) Tile Styling */
+.wall-cell.ko {
+  opacity: 0.4;
+  filter: grayscale(100%);
+  position: relative;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.wall-cell.ko::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg,
+    rgba(0,0,0,0.5) 0%,
+    transparent 50%,
+    rgba(0,0,0,0.5) 100%
+  );
+  background-size: 200% 200%;
+  pointer-events: none;
+  /* Cracked glass texture via diagonal stripes */
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 10px,
+    rgba(255,0,0,0.3) 10px,
+    rgba(255,0,0,0.3) 12px
+  );
+}
+
+.wall-cell.ko .type-badge {
+  background: #666 !important;
+  color: #999 !important;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .wall-cell.ko {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 /* ===================================
    TYPE BADGE (Styled Pill)
    =================================== */

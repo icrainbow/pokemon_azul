@@ -23,7 +23,7 @@ import { restricts } from './typeEffectiveness';
 import type { PokemonType } from './types';
 
 // Initialize a new game
-export function initGame(numPlayers: number): AzulState {
+export function initGame(numPlayers: number, config?: { rng?: () => number }): AzulState {
   if (numPlayers < 2 || numPlayers > 4) {
     throw new Error('Game requires 2-4 players');
   }
@@ -72,6 +72,7 @@ export function initGame(numPlayers: number): AzulState {
     phase: 'factory-offer',
     round: 1,
     gameEnded: false,
+    config: config || { rng: Math.random },
   };
 
   // Fill factories for first round
@@ -98,6 +99,7 @@ function createPlayerBoard(playerId: number): PlayerBoard {
     playerId,
     score: 0,
     patternLines,
+    lastTripleAttackRound: null,
     wall,
     floorLine: { tiles: [], hasStartingPlayerMarker: false },
     isStartingPlayer: false,
@@ -456,7 +458,7 @@ export function placePatternLineToWall(
   }
 
   // Deep copy state to prevent mutation
-  const newState = { ...state };
+  let newState = { ...state };
   newState.players = [...state.players];
 
   // Deep copy the specific player being modified
@@ -498,6 +500,8 @@ export function placePatternLineToWall(
     color: tileToPlace.color,
     penaltyCount: 0,
     injured: false,
+    koStatus: false,
+    placementTimestamp: Date.now(),
   };
 
   // Check for type restriction (adjacent tiles)
@@ -526,6 +530,9 @@ export function placePatternLineToWall(
     player.wall.grid[wallRow][wallCol] = wallTile;
     player.score += baseScore;
   }
+
+  // Check and execute triple attack (after tile is placed)
+  newState = checkAndExecuteTripleAttack(newState, playerIndex);
 
   // Move remaining tiles back to center (not to lid)
   newState.center.tiles.push(...line.tiles.slice(0, -1));
@@ -663,6 +670,220 @@ export function healTile(state: AzulState, playerIndex: number, row: number, col
   }
 
   tile.injured = false;
+
+  return newState;
+}
+
+// ============================================================================
+// TRIPLE ATTACK FEATURE (Wall Triple Attack)
+// ============================================================================
+
+/**
+ * Creates a seeded RNG function for deterministic random behavior in tests.
+ * Uses a simple Linear Congruential Generator (LCG) algorithm.
+ */
+export function createSeededRng(seed: number): () => number {
+  let state = seed;
+  return () => {
+    state = (state * 1664525 + 1013904223) % 4294967296;
+    return state / 4294967296;
+  };
+}
+
+/**
+ * Triple detection: A "triple" exists when a player's wall contains >= 3
+ * NON-KO tiles of the SAME type (Pokemon type).
+ *
+ * Returns an array of tile positions grouped by type for all types with >= 3 alive tiles.
+ */
+interface TripleCandidate {
+  type: TileColor;
+  tiles: Array<{ row: number; col: number; timestamp: number }>;
+}
+
+export function detectTriples(wall: Wall): TripleCandidate[] {
+  const typeGroups = new Map<TileColor, Array<{ row: number; col: number; timestamp: number }>>();
+
+  // Scan all wall positions
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 5; col++) {
+      const tile = wall.grid[row][col];
+      if (tile && !tile.koStatus) {
+        // Only count alive (non-KO) tiles
+        if (!typeGroups.has(tile.color)) {
+          typeGroups.set(tile.color, []);
+        }
+        typeGroups.get(tile.color)!.push({
+          row,
+          col,
+          timestamp: tile.placementTimestamp || 0,
+        });
+      }
+    }
+  }
+
+  // Filter groups with >= 3 tiles and sort by timestamp
+  const candidates: TripleCandidate[] = [];
+  for (const [type, tiles] of typeGroups.entries()) {
+    if (tiles.length >= 3) {
+      // Sort by timestamp (earliest first) for deterministic selection
+      tiles.sort((a, b) => a.timestamp - b.timestamp);
+      candidates.push({ type, tiles });
+    }
+  }
+
+  return candidates;
+}
+
+/**
+ * Selects ONE triple from multiple candidates.
+ * Priority: Type order (Fire > Water > Grass > Electric > Psychic) → earliest timestamp.
+ * Returns the first 3 tiles from the selected candidate.
+ */
+export function selectTripleToActivate(candidates: TripleCandidate[]): TripleCandidate | null {
+  if (candidates.length === 0) return null;
+
+  // Type priority order
+  const typePriority: TileColor[] = ['fire', 'water', 'grass', 'electric', 'psychic'];
+
+  // Sort candidates by type priority
+  candidates.sort((a, b) => {
+    const aPriority = typePriority.indexOf(a.type);
+    const bPriority = typePriority.indexOf(b.type);
+    return aPriority - bPriority;
+  });
+
+  // Return first candidate with only first 3 tiles
+  const selected = candidates[0];
+  return {
+    type: selected.type,
+    tiles: selected.tiles.slice(0, 3),
+  };
+}
+
+/**
+ * Selects a random alive (non-KO) tile from opponent's wall.
+ * Returns null if no valid targets exist (all tiles are KO'd).
+ */
+export function chooseAttackTarget(
+  opponentWall: Wall,
+  rng: () => number
+): { row: number; col: number } | null {
+  const aliveTiles: Array<{ row: number; col: number }> = [];
+
+  // Collect all alive tiles
+  for (let row = 0; row < 5; row++) {
+    for (let col = 0; col < 5; col++) {
+      const tile = opponentWall.grid[row][col];
+      if (tile && !tile.koStatus) {
+        aliveTiles.push({ row, col });
+      }
+    }
+  }
+
+  if (aliveTiles.length === 0) return null;
+
+  // Select random tile using provided RNG
+  const index = Math.floor(rng() * aliveTiles.length);
+  return aliveTiles[index];
+}
+
+/**
+ * Applies attack to target tile: injured → KO, healthy → injured.
+ * Returns the outcome ('injured' or 'ko').
+ */
+export function applyAttack(
+  opponentWall: Wall,
+  targetRow: number,
+  targetCol: number
+): 'injured' | 'ko' {
+  const targetTile = opponentWall.grid[targetRow][targetCol];
+  if (!targetTile) {
+    throw new Error('No tile at target position');
+  }
+
+  if (targetTile.injured) {
+    // Already injured → becomes KO
+    targetTile.koStatus = true;
+    return 'ko';
+  } else {
+    // Healthy → becomes injured
+    targetTile.injured = true;
+    targetTile.penaltyCount = Math.max(targetTile.penaltyCount, 1);
+    return 'injured';
+  }
+}
+
+/**
+ * Checks and executes triple attack after a tile is placed on the wall.
+ * Returns updated state with attack applied (if triggered).
+ *
+ * Anti-loop rule: Maximum ONE triple attack per player per round.
+ */
+export function checkAndExecuteTripleAttack(
+  state: AzulState,
+  attackerIndex: number
+): AzulState {
+  const attacker = state.players[attackerIndex];
+
+  // Anti-loop check: only one attack per player per round
+  if (attacker.lastTripleAttackRound === state.round) {
+    return state; // Already attacked this round
+  }
+
+  // Detect triples
+  const candidates = detectTriples(attacker.wall);
+  if (candidates.length === 0) {
+    return state; // No triple formed
+  }
+
+  // Select triple to activate
+  const triple = selectTripleToActivate(candidates);
+  if (!triple) {
+    return state; // No valid triple
+  }
+
+  // Choose opponent (for 2-player game, it's the other player)
+  const opponentIndex = (attackerIndex + 1) % state.players.length;
+  const opponent = state.players[opponentIndex];
+
+  // Choose target tile
+  const rng = state.config?.rng || Math.random;
+  const target = chooseAttackTarget(opponent.wall, rng);
+
+  if (!target) {
+    // No valid target (all opponent tiles are KO'd)
+    // Attack fizzles, but still mark as attacked this round
+    const newState = { ...state };
+    newState.players = [...state.players];
+    newState.players[attackerIndex] = {
+      ...attacker,
+      lastTripleAttackRound: state.round,
+    };
+    return newState;
+  }
+
+  // Apply attack
+  const newState = { ...state };
+  newState.players = [...state.players];
+
+  // Deep copy attacker
+  newState.players[attackerIndex] = {
+    ...attacker,
+    lastTripleAttackRound: state.round,
+  };
+
+  // Deep copy opponent with wall update
+  const newOpponent = {
+    ...opponent,
+    wall: {
+      ...opponent.wall,
+      grid: opponent.wall.grid.map(row => [...row]),
+    },
+  };
+
+  applyAttack(newOpponent.wall, target.row, target.col);
+  newState.players[opponentIndex] = newOpponent;
 
   return newState;
 }

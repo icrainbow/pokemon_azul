@@ -29,6 +29,8 @@ export interface WallTile {
   color: TileColor;
   penaltyCount: number;
   injured: boolean;
+  koStatus: boolean; // NEW: true if tile is destroyed/KO'd
+  placementTimestamp?: number; // NEW: for deterministic triple selection (Date.now())
 }
 
 export interface Wall {
@@ -49,6 +51,7 @@ export interface PlayerBoard {
   wall: Wall;
   floorLine: FloorLine;
   isStartingPlayer: boolean;
+  lastTripleAttackRound: number | null; // NEW: tracks which round this player last attacked
 }
 
 export type GamePhase = 'factory-offer' | 'wall-tiling' | 'game-end';
@@ -65,6 +68,12 @@ export interface AzulState {
   gameEnded: boolean;
   takenTiles?: Tile[]; // Temporary storage for tiles taken but not yet placed
   autoFlooredTiles?: boolean; // Flag indicating tiles were automatically sent to floor
+  config?: GameConfig; // NEW: game configuration including RNG
+}
+
+// NEW: Game configuration for injectable dependencies (e.g., seeded RNG for tests)
+export interface GameConfig {
+  rng?: () => number; // Optional RNG function, defaults to Math.random
 }
 
 // Floor line penalties (standard Azul)

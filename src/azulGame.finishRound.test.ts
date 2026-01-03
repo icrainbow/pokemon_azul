@@ -161,6 +161,7 @@ describe('Finish Round - Refill Factories Bug Fix', () => {
         color: 'fire',
         penaltyCount: 0,
         injured: false,
+      koStatus: false,
       };
     }
 
