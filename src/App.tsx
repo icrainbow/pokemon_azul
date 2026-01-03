@@ -24,6 +24,7 @@ function App() {
 
   // Wall tiling state
   const [walltiling_selectedLine, setWalltilingSelectedLine] = useState<{ playerIdx: number; lineIdx: number } | null>(null);
+  const [flyingTilesKey, setFlyingTilesKey] = useState<string | null>(null); // Track which tiles are flying
 
   // Refs for auto-scroll to current player
   const playerRefs = useRef<(HTMLDivElement | null)[]>([]);
@@ -269,37 +270,46 @@ function App() {
       }
 
       try {
-        const oldPlayerIndex = gameState.currentPlayerIndex;
-        const newState = placePatternLineToWall(
-          gameState,
-          playerIndex,
-          walltiling_selectedLine.lineIdx,
-          row,
-          col
-        );
-        setGameState(newState);
-        setWalltilingSelectedLine(null);
+        // Trigger flying animation for remaining tiles
+        const flyKey = `p${walltiling_selectedLine.playerIdx}-l${walltiling_selectedLine.lineIdx}`;
+        setFlyingTilesKey(flyKey);
 
-        // Check if player changed
-        const playerChanged = newState.currentPlayerIndex !== oldPlayerIndex;
+        // Wait for animation to complete before placing tile
+        setTimeout(() => {
+          const oldPlayerIndex = gameState.currentPlayerIndex;
+          const newState = placePatternLineToWall(
+            gameState,
+            playerIndex,
+            walltiling_selectedLine.lineIdx,
+            row,
+            col
+          );
+          setGameState(newState);
+          setWalltilingSelectedLine(null);
+          setFlyingTilesKey(null);
 
-        // Check if there are more completed lines to process
-        const hasMoreCompletedLines = newState.players.some(p =>
-          p.patternLines.some(line => line.tiles.length === line.capacity)
-        );
+          // Check if player changed
+          const playerChanged = newState.currentPlayerIndex !== oldPlayerIndex;
 
-        if (hasMoreCompletedLines) {
-          if (playerChanged) {
-            setMessage(`Tile placed! Player ${newState.currentPlayerIndex + 1}'s turn to place tiles on wall.`);
+          // Check if there are more completed lines to process
+          const hasMoreCompletedLines = newState.players.some(p =>
+            p.patternLines.some(line => line.tiles.length === line.capacity)
+          );
+
+          if (hasMoreCompletedLines) {
+            if (playerChanged) {
+              setMessage(`Tile placed! Player ${newState.currentPlayerIndex + 1}'s turn to place tiles on wall.`);
+            } else {
+              setMessage('Tile placed! Select another completed pattern line to continue wall-tiling.');
+            }
           } else {
-            setMessage('Tile placed! Select another completed pattern line to continue wall-tiling.');
+            setMessage('All completed lines processed. Click "Finish Round" to apply floor penalties and start next round.');
           }
-        } else {
-          setMessage('All completed lines processed. Click "Finish Round" to apply floor penalties and start next round.');
-        }
+        }, 800); // Match animation duration
       } catch (error) {
         if (error instanceof Error) {
           setMessage(`Error: ${error.message}`);
+          setFlyingTilesKey(null);
         }
       }
       return;
@@ -334,6 +344,7 @@ function App() {
     setSelectedSource(null);
     setSelectedColor(null);
     setWalltilingSelectedLine(null);
+    setFlyingTilesKey(null);
     setMessage('New game started! Player 1\'s turn.');
   };
 
@@ -950,10 +961,13 @@ function App() {
                       <div style={{ display: 'flex', gap: '3px' }}>
                         {Array.from({ length: line.capacity }).map((_, i) => {
                           const hasTile = i < line.tiles.length && line.color;
+                          const tileKey = `p${idx}-l${lineIdx}-t${i}`;
+                          const isFlying = flyingTilesKey === `p${idx}-l${lineIdx}` && i < line.tiles.length - 1;
+
                           return (
                             <div
                               key={i}
-                              className={hasTile ? 'tile' : ''}
+                              className={`${hasTile ? 'tile pattern-line-tile' : ''} ${isFlying ? 'flying' : ''}`}
                               style={{
                                 width: '34px',
                                 height: '34px',
@@ -963,7 +977,7 @@ function App() {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                overflow: 'hidden',
+                                overflow: 'visible',
                                 position: 'relative',
                               }}
                             >
